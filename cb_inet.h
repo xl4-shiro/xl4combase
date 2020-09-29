@@ -70,19 +70,6 @@
 
 #endif // CB_INET_NON_POSIX_H
 
-#ifndef GHINTEGRITY
-/**
- * @brief Define in6_pktinfo to prevent dereferencing of incomplete type
- * This structure is an addendum usually contained in <linux/in6.h> header file,
- * but should be placed in <netinet/in.h> instead.
- * Combase defines this explicitly to remove necessity to linux header file in posix.
- */
-struct in6_pktinfo{
-        struct in6_addr ipi6_addr;  /**< src/dst IPv6 address */
-        unsigned int ipi6_ifindex;  /**< send/recv interface index */
-};
-#endif
-
 /**
  * @brief Network address encapsulation structure for IPv4 or IPv6 address
  * This structure is used to encapsulation of address type such that the implementation does not need

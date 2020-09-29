@@ -303,7 +303,7 @@ int cb_ipcsocket_server_read(cb_ipcserverd_t *ipcsd, cb_ipcsocket_server_rdcb ip
 	int32_t res;
 	socklen_t address_length;
 	struct sockaddr_un client_address;
-	uint8_t rbuf[1500];
+	uint8_t rbuf[1501]; // reserve 1 byte to add a null terminator in textmode
 	int ri;
 
 	memset(&client_address, 0, sizeof(struct sockaddr_un));
