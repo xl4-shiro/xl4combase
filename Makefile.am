@@ -189,5 +189,4 @@ uninstall-tools:
 
 python_PYTHON = tools/gen_c_debug_strings.py \
 		tools/__init__.py
-pythondir=$(libdir)/python$(PYTHON_VERSION)/dist-packages/$(PACKAGENAME)
 py_compile = -c :

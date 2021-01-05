@@ -263,7 +263,7 @@ int cb_get_all_netdevs(int maxdevnum, netdevname_t *netdevs)
 		return 0;
 	}
 	for(ifad=ifa;ifad && i<maxdevnum;ifad=ifad->ifa_next){
-		if(ifad->ifa_addr->sa_family != AF_INET) continue;
+		if(!ifad->ifa_addr || ifad->ifa_addr->sa_family != AF_INET) continue;
 		// In QNX, local name is lo0
 		if(!strncmp(ifad->ifa_name, "lo", 2)) continue;
 		strcpy(netdevs[i], ifad->ifa_name);

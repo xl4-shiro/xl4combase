@@ -9,6 +9,13 @@ LT_PREREQ([2.2])
 LT_INIT([static])
 AC_CONFIG_SRCDIR([combase.h])
 
+AS_IF([test -n "$PYTHON_SITEPACKAGES_DIR"],
+	[am_cv_python_pythondir="${PYTHON_SITEPACKAGES_DIR}/xl4combase"],
+	[test x"$prefix" = "x/usr"],
+	[am_cv_python_pythondir='${PYTHON_PREFIX}/lib/python3/dist-packages/xl4combase'],
+	[am_cv_python_pythondir='${PYTHON_PREFIX}/lib/python${PYTHON_VERSION}/dist-packages/xl4combase']
+	)
+
 AM_PATH_PYTHON([3])
 
 # Checks for programs.
