@@ -18,13 +18,12 @@
  * along with Excelfore-combase.  If not, see
  * <https://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.
  */
-#include <sys/mman.h>
+#include "combase_private.h"
 #include <fcntl.h>           /* For O_* constants */
 #include <string.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <errno.h>
-#include "combase_private.h"
 #include "cb_ipcshmem.h"
 
 static ub_esarray_cstd_t *shmem_table=NULL;

@@ -19,7 +19,7 @@
  * <https://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.
  */
 /**
- * @defgroup network functions binding
+ * @defgroup network network functions binding
  * @{
  * @file cb_ethernet.h
  * @copyright Copyright (C) 2019 Excelfore Corporation
@@ -45,13 +45,8 @@
 #include <net/if_arp.h>
 #include <ifaddrs.h>
 #include <fcntl.h>
-
-#ifdef GHINTEGRITY
-#include "ghintg/cb_gh_specific.h"
-#else
 #include <netpacket/packet.h>
 #include <net/ethernet.h>
-#endif
 
 #define CB_SOCKET_T int
 #define CB_ETHHDR_T struct ethhdr
@@ -255,8 +250,17 @@ int cb_rawsock_open(cb_rawsock_paras_t *llrawp, CB_SOCKET_T *fd, CB_SOCKADDR_LL_
 int cb_rawsock_close(CB_SOCKET_T fd);
 
 /**
+ * @brief expand mtusize
+ * @param fd	descriptor of the opened socket
+ * @param mtusize	new mtusize, return a new mtu size in *mtusize
+ * @return 0 on success, -1 on error.
+ */
+int cb_expand_mtusize(CB_SOCKET_T fd, const char *dev, int *mtusize);
+
+/**
  * @brief set the promiscuous mode on the socket
- * @param fd	descriptor of the socket
+ * @param sfd	descriptor of the socket
+ * @param dev	ethernet device name like eth0
  * @param enable	true:enable, false:disable
  * @return 0 on success, -1 on error.
  */
@@ -282,11 +286,23 @@ int cb_reg_multicast_address(CB_SOCKET_T fd, const char *dev,
 int cb_get_all_netdevs(int maxdevnum, netdevname_t *netdevs);
 
 /**
+ * @brief get ethtool link state from device name like 'eth0'
+ * @param cfd    if cfd!=-1, pre-opened socket is used to get the ethtool info.
+ * if cfd==-1, a newly opened udp socket is used.
+ * @param dev        ethernet device name like 'eth0'
+ * @param linkstate  to store link state value (0:down, 1:up)
+ * @return 0 on success, -1 on error
+ * @note Linux platform supports this function.  Other platform must suport
+ * in the outside of this layer.
+ */
+int cb_get_ethtool_linkstate(CB_SOCKET_T cfd, const char *dev, uint32_t *linkstate);
+
+/**
  * @brief get ethtool info(speed and duplex) from device name like 'eth0'
  * @param cfd	if cfd!=-1, pre-opened socket is used to get the ethtool info.
  * if cfd==-1, a newly opened udp socket is used.
  * @param dev	ethenert device name like 'eth0'
- * @param spped	to store speed value(0:unknow, 10:10Mbps, 100:100Mbps, 1000:1Gbps)
+ * @param speed	to store speed value(0:unknow, 10:10Mbps, 100:100Mbps, 1000:1Gbps)
  * @param duplex to store duplex value(0:unknow, 1:Full, 2:Half)
  * @return 0 on success, -1 on error
  * @note Linux platform supports this function.  Other platform must suport

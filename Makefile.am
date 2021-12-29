@@ -19,7 +19,7 @@
 # <https://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.
 #
 PACKAGENAME=xl4combase
-VERSION=1.1.0
+VERSION=1.1.1
 DESCRIPTION=Excelfore communication base library
 lib_LTLIBRARIES = libx4combase.la
 libx4combase_la_SOURCES = combase.h
@@ -29,7 +29,7 @@ pkgincludedir=$(includedir)/$(PACKAGENAME)
 docdir=${datarootdir}/doc/$(PACKAGENAME)
 
 ACLOCAL_AMFLAGS = -I m4
-AM_CFLAGS = -Wall -Wno-unused-result \
+AM_CFLAGS = -Wall -Wextra -Wno-unused-parameter \
 	-DXL4PKGVERSION=\"$(VERSION)-`cd $(srcdir);echo opensrc`\"
 
 if BUILD_IN_STPL
@@ -93,8 +93,11 @@ pkginclude_HEADERS += cb_tmevent.h
 libx4combase_la_LIBADD += -lrt
 endif
 
+libx4combase_la_SOURCES += cb_xtimer.h cb_xtimer.c cb_crc.h cb_crc.c
+pkginclude_HEADERS += cb_xtimer.h cb_crc.h
+
 check_PROGRAMS = cb_ethernet_ovip_unittest cb_timer_unittest cb_thread_waitpoint_unittest \
-cb_noipcshmem_unittest cb_ipcsock_unittest
+cb_noipcshmem_unittest cb_ipcsock_unittest cb_xtimer_unittest cb_crc_unittest
 AM_MAKEFLAGS = CMOCKA_TEST_ABORT='1'
 
 cb_ethernet_ovip_unittest_SOURCES = cb_ethernet_ovip_unittest.c
@@ -104,6 +107,10 @@ cb_ethernet_ovip_unittest_LDFLAGS = $(AM_LDFLAGS) -lx4unibase -lcmocka -lpthread
 cb_timer_unittest_SOURCES = cb_timer_unittest.c
 cb_timer_unittest_LDADD = libx4combase.la
 cb_timer_unittest_LDFLAGS = $(AM_LDFLAGS) -lx4unibase -lcmocka -lpthread
+
+cb_xtimer_unittest_SOURCES = cb_xtimer_unittest.c
+cb_xtimer_unittest_LDADD = libx4combase.la
+cb_xtimer_unittest_LDFLAGS = $(AM_LDFLAGS) -lx4unibase -lcmocka
 
 cb_thread_waitpoint_unittest_SOURCES = cb_thread_waitpoint_unittest.c
 cb_thread_waitpoint_unittest_LDADD = libx4combase.la
@@ -116,6 +123,10 @@ cb_noipcshmem_unittest_LDFLAGS = $(AM_LDFLAGS) -lx4unibase -lcmocka -lpthread
 cb_ipcsock_unittest_SOURCE = cb_ipcsock_unittest.c
 cb_ipcsock_unittest_LDADD = libx4combase.la
 cb_ipcsock_unittest_LDFLAGS = $(AM_LDFLAGS) -lx4unibase -lcmocka -lpthread
+
+cb_crc_unittest_SOURCES = cb_crc_unittest.c
+cb_crc_unittest_LDADD = libx4combase.la
+cb_crc_unittest_LDFLAGS = $(AM_LDFLAGS) -lx4unibase -lcmocka
 
 TESTS = $(check_PROGRAMS)
 
@@ -190,3 +201,7 @@ uninstall-tools:
 python_PYTHON = tools/gen_c_debug_strings.py \
 		tools/__init__.py
 py_compile = -c :
+
+
+CPPCHECK_TST_TARGET = $(libx4combase_la_SOURCES)
+-include $(srcdir)/make_cppcheck.mk

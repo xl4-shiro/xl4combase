@@ -27,12 +27,27 @@ bindings macros to posix thread,mutex and semaphore functions.
 
 For more detail, look at cb_thread.h
 
-## cb_ipc
-utility functions to use local socket and shared memory.
+## cb_ipcsock
+utility functions to use local socket
 
-For more detail, look at cb_ipc.h
+For more detail, look at cb_ipcsock.h
 
 ## cb_tmevent
 utility functions to use timer and event hadling.
 
 For more detail, look at cb_tmevent.h
+
+## cb_ipcshmem
+utility functions to use shared memory 
+
+For more detail, look at cb_ipcshmem.h
+
+## cb_xtimer
+utility functions to use an independent platform timer. 
+
+For more detail, look at cb_xtimer.h
+
+## cb_crc
+utility functions to calculate CRC. 
+
+For more detail, look at cb_crc.h

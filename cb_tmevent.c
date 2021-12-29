@@ -72,7 +72,7 @@ cb_timer_object_t *cb_timer_create(char *tname)
 
 	if(!alarm_signal) cb_timer_init(0);
 	mtmo=malloc(sizeof(cb_timer_object_t));
-	ub_assert(mtmo, __func__, NULL);
+	ub_assert(mtmo!=NULL, __func__, NULL);
 	memset(mtmo, 0, sizeof(cb_timer_object_t));
 	if(tname) snprintf(mtmo->name, sizeof(mtmo->name), "%s", tname);
 	sev.sigev_notify=SIGEV_SIGNAL;

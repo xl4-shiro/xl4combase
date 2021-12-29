@@ -19,7 +19,7 @@
  * <https://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.
  */
 /**
- * @defgroup thread functions binding
+ * @defgroup thread thread functions binding
  * @{
  * @file cb_thread.h
  * @copyright Copyright (C) 2019 Excelfore Corporation
@@ -41,8 +41,11 @@
  */
 typedef struct cb_xl4_thread_attr{
 	int pri;
+        /**< thread priority */
 	int stack;
+        /**< stack size */
 	char name[CB_XL4_THREAD_NAME_SIZE];
+        /**< thread name */
 } cb_xl4_thread_attr_t;
 
 #ifdef CB_THREAD_NON_POSIX_H
@@ -111,9 +114,13 @@ static inline int cb_xl4_thread_attr_init(cb_xl4_thread_attr_t *attr, int pri,
  */
 typedef struct cb_waitpoint {
         CB_THREAD_MUTEX_T lock;
+        /**< mutual exclusion lock */
         CB_THREAD_COND_T condition;
+        /**< lock condition */
         uint64_t time;
+        /**< lock time */
         bool wakeup;
+        /**< boolean if waitpoint is unlocked */
 } cb_waitpoint_t;
 
 /**

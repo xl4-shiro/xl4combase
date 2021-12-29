@@ -18,16 +18,26 @@
  * along with Excelfore-combase.  If not, see
  * <https://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.
  */
+/**
+ * @defgroup combase general types and functions
+ * @{
+ * @file combase.h
+ * @author Shiro Ninomiya<shiro@excelfore.com>
+ * @copyright Copyright (C) 2019 Excelfore Corporation
+ *
+ * @brief combase general global header
+ *
+ * This header is intended to be included by application programs which
+ * use 'combase' library.  This is the only one header which needs to be
+ * included.
+ *
+ */
 #ifndef __COMBASE_H_
 #define __COMBASE_H_
 
 #include <xl4unibase/unibase.h>
 
 #define CB_COMBASE_LOGCAT 1
-
-#ifdef GHINTEGRITY
-#define CB_THREAD_NON_POSIX_H "ghintg/cb_gh_thread.h" 
-#endif
 
 #ifndef COMBASE_NO_ETH
 #include "cb_ethernet.h"
@@ -41,7 +51,9 @@
 #include "cb_thread.h"
 #endif
 
+#ifndef COMBASE_NO_SHMEM
 #include "cb_ipcshmem.h"
+#endif
 
 #ifndef COMBASE_NO_IPCSOCK
 #include "cb_ipcsock.h"
@@ -51,4 +63,14 @@
 #include "cb_tmevent.h"
 #endif
 
+#ifndef COMBASE_NO_XTIMER
+#include "cb_xtimer.h"
 #endif
+
+#ifndef COMBASE_NO_CRC
+#include "cb_crc.h"
+#endif
+
+#endif
+
+/** @}*/

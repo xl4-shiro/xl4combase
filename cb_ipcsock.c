@@ -320,7 +320,6 @@ int cb_ipcsocket_server_read(cb_ipcserverd_t *ipcsd, cb_ipcsocket_server_rdcb ip
 
 	if(res==0){
 		UB_LOG(UBL_WARN, "%s:read returns 0, must be disconnected\n", __func__);
-		res=-1;
 	}else{
 		if(errno==ECONNREFUSED){
 			UB_LOG(UBL_WARN, "%s:the other side may not be listening\n", __func__);
@@ -382,7 +381,7 @@ cb_ipcserverd_t *cb_ipcsocket_server_init(char *node_ip, char *suffix, uint16_t 
 {
 	cb_ipcserverd_t *ipcsd;
 	ipcsd=malloc(sizeof(cb_ipcserverd_t));
-	ub_assert(ipcsd, __func__, "malloc");
+	ub_assert(ipcsd!=NULL, __func__, "malloc");
 	memset(ipcsd, 0, sizeof(cb_ipcserverd_t));
 	if(port){
 		if(cb_ipcsocket_udp_init(&ipcsd->fd, node_ip, NULL, port)) goto erexit;

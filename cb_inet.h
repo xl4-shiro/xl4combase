@@ -19,7 +19,7 @@
  * <https://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.
  */
 /**
- * @defgroup network functions binding
+ * @defgroup ip_network IP network functions binding
  * @{
  * @file cb_inet.h
  * @copyright Copyright (C) 2019 Excelfore Corporation
@@ -84,7 +84,7 @@ typedef struct cb_inetaddr {
         union {
                 CB_IN_ADDR_T ip_inaddr;
                 CB_IN6_ADDR_T ip6_inaddr;
-        } addr; /** network address, hold either IPv4 or IPv6 address */
+        } addr; /**< network address, hold either IPv4 or IPv6 address */
         unsigned short port; /**< port number */
 } cb_inetaddr_t;
 
@@ -94,8 +94,8 @@ typedef struct cb_inetaddr {
  */
 typedef struct cb_inetaddr_map {
         CB_SOCKADDR_STORAGE_T ss; /**< socket storage */
-        cb_inetaddr_t addr; /* network address */
-        uint64_t ts; /* timestamp */
+        cb_inetaddr_t addr; /**< network address */
+        uint64_t ts; /**< timestamp */
 } cb_inetaddr_map_t;
 
 /**
@@ -126,6 +126,7 @@ int cb_sockaddr_to_ipaddr(const CB_SOCKADDR_T *sa, CB_SOCKLEN_T salen, char *ip,
 
 /**
  * @brief Translate socket information to IP address
+ * @param ai        a ponter to an address information
  * @param ip        buffer for the resulting IP address
  * @param ip_size   size of the buffer
  * @param port      resulting port number

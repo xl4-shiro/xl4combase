@@ -84,12 +84,12 @@ if __name__ == '__main__':
                 break
         if not vpd: continue
         d=[]
-        for i in range(6): d.append("%02x" % ord(p['Raw'].load[i]))
+        for i in range(6): d.append("%02x" % p['Raw'].load[i])
         dst=":".join(d)
         d=[]
-        for i in range(6): d.append("%02x" % ord(p['Raw'].load[i+6]))
+        for i in range(6): d.append("%02x" % p['Raw'].load[i+6])
         src=":".join(d)
-        pro=ord(p['Raw'].load[12])*0x100 + ord(p['Raw'].load[13])
+        pro=p['Raw'].load[12]*0x100 + p['Raw'].load[13]
         np=Ether(dst=dst, src=src, type=pro)/Raw(load=p['Raw'].load[14:])
         np.time=p.time
         plist.append(np)

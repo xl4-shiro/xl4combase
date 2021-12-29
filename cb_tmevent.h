@@ -19,7 +19,7 @@
  * <https://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.
  */
 /**
- * @defgroup timer and events utility functions
+ * @defgroup timer timer and events utility functions
  * @{
  * @file cb_tmevent.h
  * @copyright Copyright (C) 2019 Excelfore Corporation

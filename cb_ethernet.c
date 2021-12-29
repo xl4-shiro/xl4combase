@@ -21,7 +21,6 @@
 #include <string.h>
 #include <errno.h>
 #include <stdio.h>
-#include <unistd.h>
 #include "combase_private.h"
 
 static int ovip_socket_open(CB_SOCKET_T *sfd, CB_SOCKADDR_IN_T *saddr,
@@ -62,7 +61,6 @@ int cb_rawsock_open(cb_rawsock_paras_t *llrawp, CB_SOCKET_T *fd, CB_SOCKADDR_LL_
 {
 	int ifindex;
 	char mstr[20];
-	CB_IFREQ_T ifr;
 
 	UB_LOG(UBL_INFO, "%s:combase-"XL4PKGVERSION"\n", __func__);
 	if(llrawp->sock_mode==CB_SOCK_MODE_OVIP){
@@ -91,7 +89,7 @@ int cb_rawsock_open(cb_rawsock_paras_t *llrawp, CB_SOCKET_T *fd, CB_SOCKADDR_LL_
 
 	if(llrawp->sock_mode==CB_SOCK_MODE_OVIP){
 		if(mtusize)
-			*mtusize=1500-(sizeof(CB_ETHHDR_T) + 4 + 20); //IP+UDP heaer=20bytes
+			*mtusize=1500-20; //IP+UDP heaer=20bytes
 		return 0;
 	}else{
 		if((ifindex = CB_IF_NAMETOINDEX(llrawp->dev))<0) goto erexit;
@@ -106,21 +104,7 @@ int cb_rawsock_open(cb_rawsock_paras_t *llrawp, CB_SOCKET_T *fd, CB_SOCKADDR_LL_
 	}
 
 	if(!mtusize) return 0;
-	/* expand the size of MTU if needed, normally MTU size = 1500.
-	   if it is not possible, keep the same MTU size */
-	snprintf(ifr.ifr_name, IFNAMSIZ, "%s", llrawp->dev);
-	if(CB_SOCK_IOCTL(*fd, SIOCGIFMTU, &ifr)<0) goto erexit;
-	*mtusize -= sizeof(CB_ETHHDR_T) + 4;
-	if(ifr.ifr_mtu<*mtusize){
-		ifr.ifr_mtu=*mtusize;
-		if (CB_SOCK_IOCTL(*fd, SIOCSIFMTU, &ifr) < 0)
-			UB_LOG(UBL_INFO,"%s: MTU size can't be expandable\n",__func__);
-		if(CB_SOCK_IOCTL(*fd, SIOCGIFMTU, &ifr) < 0) goto erexit;
-	}
-	/* ifr.ifr_mtu doesn't include eth header size.
-	   sizeof(CB_ETHHDR_T) + VLAN_AF_SIZE = 18 can be normally added */
-	*mtusize = ifr.ifr_mtu + sizeof(CB_ETHHDR_T) + 4;
-	return 0;
+	if(!cb_expand_mtusize(*fd, llrawp->dev, mtusize)) return 0;
 erexit:
 	UB_LOG(UBL_ERROR,"%s:dev=%s %s\n",__func__, llrawp->dev, strerror(errno));
 	if(*fd) CB_SOCK_CLOSE(*fd);
@@ -131,6 +115,27 @@ erexit:
 int cb_rawsock_close(CB_SOCKET_T fd)
 {
 	return CB_SOCK_CLOSE(fd);
+}
+
+#ifdef CB_IFREQ_T
+int cb_expand_mtusize(CB_SOCKET_T fd, const char *dev, int *mtusize)
+{
+	CB_IFREQ_T ifr;
+	/* expand the size of MTU if needed, normally MTU size = 1500.
+	   if it is not possible, keep the same MTU size */
+	snprintf(ifr.ifr_name, IFNAMSIZ, "%s", dev);
+	if(CB_SOCK_IOCTL(fd, SIOCGIFMTU, &ifr)<0) return -1;
+	*mtusize -= sizeof(CB_ETHHDR_T) + 4;
+	if(ifr.ifr_mtu<*mtusize){
+		ifr.ifr_mtu=*mtusize;
+		if (CB_SOCK_IOCTL(fd, SIOCSIFMTU, &ifr) < 0)
+			UB_LOG(UBL_INFO,"%s: MTU size can't be expandable\n",__func__);
+		if(CB_SOCK_IOCTL(fd, SIOCGIFMTU, &ifr) < 0) return -1;
+	}
+	/* ifr.ifr_mtu doesn't include eth header size.
+	   sizeof(CB_ETHHDR_T) + VLAN_AF_SIZE = 18 can be normally added */
+	*mtusize = ifr.ifr_mtu + sizeof(CB_ETHHDR_T) + 4;
+	return 0;
 }
 
 int cb_set_promiscuous_mode(CB_SOCKET_T sfd, const char *dev, bool enable)
@@ -162,6 +167,7 @@ int cb_set_promiscuous_mode(CB_SOCKET_T sfd, const char *dev, bool enable)
 	}
 	return 0;
 }
+
 static int ifrqd_ioctr(CB_SOCKET_T sfd, const char *dev, CB_IFREQ_T *ifrqd, uint32_t iocreq)
 {
 	int fd=sfd;
@@ -251,7 +257,9 @@ int cb_reg_multicast_address(CB_SOCKET_T fd, const char *dev,
 	}
 	return 0;
 }
+#endif
 
+#ifndef CB_NO_GETIFADDRS
 int cb_get_all_netdevs(int maxdevnum, netdevname_t *netdevs)
 {
 	struct ifaddrs *ifa;
@@ -273,11 +281,37 @@ int cb_get_all_netdevs(int maxdevnum, netdevname_t *netdevs)
 	if(ifa) freeifaddrs(ifa);
 	return i;
 }
+#endif
 
 #ifdef LINUX_ETHTOOL
 #include <linux/ethtool.h>
 #include <linux/sockios.h>
 #include <dirent.h>
+
+int cb_get_ethtool_linkstate(CB_SOCKET_T cfd, const char *dev, uint32_t *linkstate)
+{
+	struct ifreq ifr;
+	struct ethtool_value ecmd;
+
+	if(strstr(dev, CB_VIRTUAL_ETHDEV_PREFIX)==dev){
+		*linkstate=1;
+		return 0;
+	}
+	memset(&ifr, 0, sizeof(ifr));
+	memset(&ecmd, 0, sizeof(ecmd));
+	ecmd.cmd = ETHTOOL_GLINK;
+	ifr.ifr_data = (void *)&ecmd;
+	if(ifrqd_ioctr(cfd, dev, &ifr, SIOCETHTOOL)) return -1;
+	if(ecmd.data){
+		*linkstate=1;
+	}else{
+		*linkstate=0;
+	}
+
+	return 0;
+}
+
+
 int cb_get_ethtool_info(CB_SOCKET_T cfd, const char *dev, uint32_t *speed, uint32_t *duplex)
 {
 	struct ifreq ifr;
@@ -355,6 +389,7 @@ int cb_get_netdev_from_ptpdev(char *ptpdev, char *netdev)
 
 int cb_get_ptpdev_from_netdev(char *netdev, char *ptpdev)
 {
+	int res;
 	char pname[128];
 	if(strstr(netdev, CB_VIRTUAL_ETHDEV_PREFIX)==netdev){
 		int di=strlen(CB_VIRTUAL_ETHDEV_PREFIX);
@@ -362,9 +397,19 @@ int cb_get_ptpdev_from_netdev(char *netdev, char *ptpdev)
 		strcpy(ptpdev+strlen(CB_VIRTUAL_PTPDEV_PREFIX), netdev+di);
 		return 0;
 	}
-	snprintf(pname, sizeof(pname), "/sys/class/net/%s/device/ptp", netdev);
 	strcpy(ptpdev,"/dev/");
-	return get_first_dir_name(pname, ptpdev+5);
+
+	/*
+	 * Try with the PHY PTP first. If it is failed, we will go with MAC PTP.
+	 * Note: the cb_get_netdev_from_ptpdev() does not support for PHY PTP.
+	 */
+	snprintf(pname, sizeof(pname), "/sys/class/net/%s/phydev/ptp", netdev);
+	res = get_first_dir_name(pname, ptpdev+5);
+	if (res < 0) {
+		snprintf(pname, sizeof(pname), "/sys/class/net/%s/device/ptp", netdev);
+		res = get_first_dir_name(pname, ptpdev+5);
+	}
+	return res;
 }
 
 #endif

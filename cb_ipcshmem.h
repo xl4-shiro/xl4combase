@@ -19,17 +19,17 @@
  * <https://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.
  */
 /**
- * @defgroup IPC utility functions
+ * @defgroup IPC_shm shared memory IPC utility functions
  * @{
  * @file cb_ipcshmem.h
  * @copyright Copyright (C) 2019 Excelfore Corporation
  * @author Shiro Ninomiya (shiro@excelfore.com)
  *
- * @brief IPC utility functions
+ * @brief shared memory IPC utility functions
  */
 
 #ifndef __CB_IPCSHMEM_H_
-#define __CB_IPCCSHMEM_H_
+#define __CB_IPCSHMEM_H_
 
 /**
  * @brief get new shared memory

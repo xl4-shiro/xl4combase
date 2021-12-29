@@ -19,13 +19,13 @@
  * <https://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.
  */
 /**
- * @defgroup IPC utility functions
+ * @defgroup IPC_sock socket IPC utility functions
  * @{
  * @file cb_ipcsock.h
  * @copyright Copyright (C) 2019 Excelfore Corporation
  * @author Shiro Ninomiya (shiro@excelfore.com)
  *
- * @brief IPC utility functions
+ * @brief socket IPC utility functions
  */
 
 #ifndef __CB_IPCSOCK_H_
@@ -125,6 +125,7 @@ typedef int(* cb_ipcsocket_server_ddatacb)(void *cbdata, uint8_t **sdata,
  * @brief send ipc data to all clients
  * @return 0 on success, -1 on error
  * @param ipcsd	the data handle
+ * @param cbdata	data to be passed with the callback
  * @param ddatacb	callback function to get defered data from the caller
  * @note this is used when notice data is different for each client.
  *	the data is not provided to this call but got by the callback.
@@ -177,7 +178,7 @@ cb_ipcclient_commode_t cb_ipcsocket_get_commode(cb_ipcserverd_t *ipcsd,
  * @return 0 on success, -1 on error
  * @param ipcsd	the data handle
  * @param client_address	if set, the data is sent to this client_address,
- * @commode ipc communication mode
+ * @param commode ipc communication mode
  */
 int cb_ipcsocket_set_commode(cb_ipcserverd_t *ipcsd, struct sockaddr *client_address,
 			     cb_ipcclient_commode_t commode);
