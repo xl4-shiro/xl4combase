@@ -50,6 +50,11 @@
 #define CB_SLEEP(x) sleep(x)
 
 /**
+ *@brief seconds since the Epoch, 1970-01-01 00:00:00 +0000 (UTC)
+ */
+#define CB_MKTIME(x) mktime(x)
+
+/**
  *@brief nano second unit sleep
  */
 static inline int cb_nanosleep64(int64_t ts64, int64_t *rts64)

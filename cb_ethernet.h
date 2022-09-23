@@ -49,6 +49,8 @@
 #include <net/ethernet.h>
 
 #define CB_SOCKET_T int
+#define CB_SOCKET_VALID(x) ((x)>=0)
+#define CB_SOCKET_INVALID_VALUE -1
 #define CB_ETHHDR_T struct ethhdr
 #define CB_SOCKLEN_T socklen_t
 #define CB_SOCKADDR_T struct sockaddr
@@ -60,6 +62,8 @@
 #define CB_IN6_ADDR_T struct in6_addr
 #define CB_IFREQ_T struct ifreq
 
+#define CB_OPEN open
+#define CB_CLOSE close
 #define CB_SOCKET socket
 #define CB_IF_NAMETOINDEX if_nametoindex
 #define CB_SOCK_BIND bind
@@ -248,6 +252,14 @@ int cb_rawsock_open(cb_rawsock_paras_t *llrawp, CB_SOCKET_T *fd, CB_SOCKADDR_LL_
  * @return 0 on success, -1 on error.
  */
 int cb_rawsock_close(CB_SOCKET_T fd);
+
+/**
+ * @brief set socket priority
+ * @param fd	descriptor of the opened socket
+ * @param priority	priority number
+ * @return 0 on success, -1 on error.
+ */
+int cb_sock_set_priority(CB_SOCKET_T fd, int priority);
 
 /**
  * @brief expand mtusize

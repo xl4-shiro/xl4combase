@@ -18,9 +18,9 @@
 # along with Excelfore-combase.  If not, see
 # <https://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.
 #
-PACKAGENAME=xl4combase
-VERSION=1.1.1
-DESCRIPTION=Excelfore communication base library
+PACKAGENAME=@PACKAGE_NAME@
+VERSION=@PACKAGE_VERSION@
+DESCRIPTION=@PACKAGE_DESC@
 lib_LTLIBRARIES = libx4combase.la
 libx4combase_la_SOURCES = combase.h
 libx4combase_la_LIBADD =
@@ -34,7 +34,7 @@ AM_CFLAGS = -Wall -Wextra -Wno-unused-parameter \
 
 if BUILD_IN_STPL
 AM_CFLAGS += -I$(srcdir)/..
-AM_LDFLAGS = -L../xl4unibase/.libs
+AM_LDFLAGS = -L../xl4unibase/.libs -lx4unibase
 DOC_DIR = $(abs_srcdir)/../xl4unibase/doc
 else
 DOC_DIR = $(datadir)/xl4unibase
@@ -102,31 +102,33 @@ AM_MAKEFLAGS = CMOCKA_TEST_ABORT='1'
 
 cb_ethernet_ovip_unittest_SOURCES = cb_ethernet_ovip_unittest.c
 cb_ethernet_ovip_unittest_LDADD = libx4combase.la
-cb_ethernet_ovip_unittest_LDFLAGS = $(AM_LDFLAGS) -lx4unibase -lcmocka -lpthread
+cb_ethernet_ovip_unittest_LDFLAGS = $(AM_LDFLAGS) $(x4unibase_LIBS) -lcmocka -lpthread
 
 cb_timer_unittest_SOURCES = cb_timer_unittest.c
 cb_timer_unittest_LDADD = libx4combase.la
-cb_timer_unittest_LDFLAGS = $(AM_LDFLAGS) -lx4unibase -lcmocka -lpthread
+cb_timer_unittest_LDFLAGS = $(AM_LDFLAGS) $(x4unibase_LIBS) -lcmocka -lpthread
 
 cb_xtimer_unittest_SOURCES = cb_xtimer_unittest.c
 cb_xtimer_unittest_LDADD = libx4combase.la
-cb_xtimer_unittest_LDFLAGS = $(AM_LDFLAGS) -lx4unibase -lcmocka
+cb_xtimer_unittest_LDFLAGS = $(AM_LDFLAGS) $(x4unibase_LIBS) -lcmocka
 
 cb_thread_waitpoint_unittest_SOURCES = cb_thread_waitpoint_unittest.c
 cb_thread_waitpoint_unittest_LDADD = libx4combase.la
-cb_thread_waitpoint_unittest_LDFLAGS = $(AM_LDFLAGS) -lx4unibase -lcmocka -lpthread
+cb_thread_waitpoint_unittest_LDFLAGS = $(AM_LDFLAGS) $(x4unibase_LIBS) -lcmocka -lpthread
 
 cb_noipcshmem_unittest_SOURCE = cb_noipcshmem_unittest.c
 cb_noipcshmem_unittest_LDADD = libx4combase.la
-cb_noipcshmem_unittest_LDFLAGS = $(AM_LDFLAGS) -lx4unibase -lcmocka -lpthread
+cb_noipcshmem_unittest_LDFLAGS = $(AM_LDFLAGS) $(x4unibase_LIBS) -lcmocka -lpthread
 
 cb_ipcsock_unittest_SOURCE = cb_ipcsock_unittest.c
 cb_ipcsock_unittest_LDADD = libx4combase.la
-cb_ipcsock_unittest_LDFLAGS = $(AM_LDFLAGS) -lx4unibase -lcmocka -lpthread
+cb_ipcsock_unittest_LDFLAGS = $(AM_LDFLAGS) $(x4unibase_LIBS) -lcmocka -lpthread
 
 cb_crc_unittest_SOURCES = cb_crc_unittest.c
 cb_crc_unittest_LDADD = libx4combase.la
-cb_crc_unittest_LDFLAGS = $(AM_LDFLAGS) -lx4unibase -lcmocka
+cb_crc_unittest_LDFLAGS = $(AM_LDFLAGS) $(x4unibase_LIBS) -lcmocka
+
+pkgconfig_DATA=$(PACKAGENAME).pc
 
 TESTS = $(check_PROGRAMS)
 
@@ -155,10 +157,10 @@ $(srcdir)/xl4_header.tex:
 $(TARGET_PDF): $(DOC_LATEC_REFMAN)
 	$(INSTALL_DATA) $^ $@
 
-$(DOC_LATEC_REFMAN): $(srcdir)/xl4_header.tex $(DOC_HTML_INDEX)
+$(DOC_LATEC_REFMAN): $(DOC_HTML_INDEX)
 	make -C $(srcdir)/docoutput/latex
 
-docoutput/html $(DOC_HTML_INDEX): $(pkginclude_HEADERS) README.md
+docoutput/html $(DOC_HTML_INDEX): $(srcdir)/xl4_header.tex $(pkginclude_HEADERS) README.md
 	cd $(srcdir); COMBASE_VERSION=$(VERSION)-`date +%Y%m%d` doxygen combase_doxygen.conf
 
 install-html-local: docoutput/html $(DOC_HTML_INDEX)
@@ -190,7 +192,7 @@ deb:
 			exit 1; \
 		fi; \
 	fi
-	@cd $(srcdir); make -f debian.make
+	@cd $(srcdir); make DEB_BUILD_OPTIONS=nocheck -f debian.make
 
 TOOLPROGRAMS=vport_pcap_conv.py
 install-tools:

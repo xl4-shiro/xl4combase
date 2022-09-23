@@ -35,6 +35,7 @@ typedef enum {
 	CB_IPCCLIENT_DEFAULT = 0,
 	CB_IPCCLIENT_BINARY,
 	CB_IPCCLIENT_TEXT,
+	CB_IPCCLIENT_LAST, // layer private numbers after here
 } cb_ipcclient_commode_t;
 
 /**

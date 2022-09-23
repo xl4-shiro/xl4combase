@@ -39,3 +39,7 @@ xl4combase_*.deb
 debian.make
 py-compile
 xl4_header.tex
+.cert.json
+.misra.json
+make_cppcheck.mk
+*.pc

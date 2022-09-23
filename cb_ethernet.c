@@ -29,7 +29,7 @@ static int ovip_socket_open(CB_SOCKET_T *sfd, CB_SOCKADDR_IN_T *saddr,
 	int optval;
 
 	*sfd = CB_SOCKET(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-	if (*sfd < 0){
+	if (!CB_SOCKET_VALID(*sfd)){
 		UB_LOG(UBL_ERROR,"%s: %s\n",__func__, strerror(errno));
 		return -1;
 	}
@@ -63,6 +63,7 @@ int cb_rawsock_open(cb_rawsock_paras_t *llrawp, CB_SOCKET_T *fd, CB_SOCKADDR_LL_
 	char mstr[20];
 
 	UB_LOG(UBL_INFO, "%s:combase-"XL4PKGVERSION"\n", __func__);
+	*fd = CB_SOCKET_INVALID_VALUE;
 	if(llrawp->sock_mode==CB_SOCK_MODE_OVIP){
 		if(!llrawp->ovipp) {
 			UB_LOG(UBL_ERROR,"%s:ovipp parameters don't exist\n",__func__);
@@ -70,14 +71,12 @@ int cb_rawsock_open(cb_rawsock_paras_t *llrawp, CB_SOCKET_T *fd, CB_SOCKADDR_LL_
 		}
 		// sizeof(CB_SOCKADDR_LL_T) >= sizeof(CB_SOCKADDR_IN_T) must be true
 		if(ovip_socket_open(fd, (CB_SOCKADDR_IN_T *)addr,  llrawp->ovipp)) {
-			*fd=0;
 			return -1;
 		}
 	}else{
 		*fd = CB_SOCKET(AF_PACKET, SOCK_RAW, htons(llrawp->proto));
-		if (*fd < 0){
+		if (!CB_SOCKET_VALID(*fd)){
 			UB_LOG(UBL_ERROR,"%s:socket error, %s\n",__func__, strerror(errno));
-			*fd=0;
 			return -1;
 		}
 	}
@@ -99,16 +98,22 @@ int cb_rawsock_open(cb_rawsock_paras_t *llrawp, CB_SOCKET_T *fd, CB_SOCKADDR_LL_
 		addr->sll_hatype = ARPHRD_ETHER;
 		addr->sll_pkttype = PACKET_OTHERHOST;
 		addr->sll_halen = ETH_ALEN;
+		memcpy(addr->sll_addr, bmac, ETH_ALEN);
 
 		if(CB_SOCK_BIND(*fd, (CB_SOCKADDR_T*)addr, sizeof(*addr)) < 0) goto erexit;
+		if(llrawp->priority){
+			cb_sock_set_priority(*fd, llrawp->priority);
+		}
 	}
 
 	if(!mtusize) return 0;
 	if(!cb_expand_mtusize(*fd, llrawp->dev, mtusize)) return 0;
 erexit:
 	UB_LOG(UBL_ERROR,"%s:dev=%s %s\n",__func__, llrawp->dev, strerror(errno));
-	if(*fd) CB_SOCK_CLOSE(*fd);
-	*fd=0;
+	if(CB_SOCKET_VALID(*fd)){
+		CB_SOCK_CLOSE(*fd);
+		*fd = CB_SOCKET_INVALID_VALUE;
+	}
 	return -1;
 }
 
@@ -118,6 +123,17 @@ int cb_rawsock_close(CB_SOCKET_T fd)
 }
 
 #ifdef CB_IFREQ_T
+int cb_sock_set_priority(CB_SOCKET_T fd, int priority)
+{
+	if(CB_SETSOCKOPT(fd, SOL_SOCKET, SO_PRIORITY,
+			 &priority, sizeof(priority))){
+		UB_LOG(UBL_WARN, "%s:failed SO_PRIORITY, %s\n",
+		       __func__, strerror(errno));
+		return -1;
+	}
+	return 0;
+}
+
 int cb_expand_mtusize(CB_SOCKET_T fd, const char *dev, int *mtusize)
 {
 	CB_IFREQ_T ifr;
@@ -174,7 +190,7 @@ static int ifrqd_ioctr(CB_SOCKET_T sfd, const char *dev, CB_IFREQ_T *ifrqd, uint
 	if (fd==-1){
 		/* open a udp socket to get it */
 		fd = CB_SOCKET(AF_INET,SOCK_DGRAM,0);
-		if (fd < 0){
+		if (!CB_SOCKET_VALID(fd)){
 			UB_LOG(UBL_ERROR,"%s: %s\n",__func__, strerror(errno));
 			return -1;
 		}

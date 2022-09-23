@@ -80,7 +80,7 @@ static void *test_ethovip_thread1(void *ptr)
 	socklen_t addrlen=sizeof(saddr);
 
 	sfd=open_ovlpip_socket(TEST_PORT1, TEST_PORT2, "0");
-	assert_int_not_equal(sfd, 0);
+	assert_int_not_equal(sfd, CB_SOCKET_INVALID_VALUE);
 
 	rsize=recvfrom(sfd, buf, 1500, 0, (CB_SOCKADDR_T *)&saddr, &addrlen);
 	assert_int_equal(rsize, strlen(test_string1));
@@ -101,7 +101,7 @@ static void *test_ethovip_thread2(void *ptr)
 	uint8_t buf[1500];
 
 	sfd=open_ovlpip_socket(TEST_PORT2, TEST_PORT1, "1");
-	assert_int_not_equal(sfd, 0);
+	assert_int_not_equal(sfd, CB_SOCKET_INVALID_VALUE);
 	usleep(10000); // make sure the other thread to run
 
 	ssize=write(sfd, test_string1, strlen(test_string1));
@@ -139,7 +139,7 @@ static void test_ethovip2(void **state)
 	strcat(netdev,"0");
 	strcat(ptpdev,"0");
 	sfd=open_ovlpip_socket(TEST_PORT1, TEST_PORT2, "0");
-	assert_int_not_equal(sfd, 0);
+	assert_int_not_equal(sfd, CB_SOCKET_INVALID_VALUE);
 	cb_get_ip_bydev(sfd, netdev, &inp);
 	assert_int_equal(ntohl(inp.s_addr), 0x7f000001);
 	cb_get_brdip_bydev(sfd, netdev, &inp);

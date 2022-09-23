@@ -52,14 +52,15 @@ int cb_ipcsocket_init(int *ipcfd, char *node, char *suffix, char *server_node)
 	struct sockaddr_un serveraddress;
 	int len;
 
+	*ipcfd=CB_SOCKET_INVALID_VALUE;
 	if(!node){
 		UB_LOG(UBL_ERROR,"'node' must be set\n");
 		return -1;
 	}
 	UB_LOG(UBL_INFO, "%s:combase-"XL4PKGVERSION"\n", __func__);
-	if((*ipcfd=CB_SOCKET(AF_UNIX, SOCK_DGRAM, 0))<0){
+	*ipcfd=CB_SOCKET(AF_UNIX, SOCK_DGRAM, 0);
+	if(!CB_SOCKET_VALID(*ipcfd)){
 		UB_LOG(UBL_ERROR,"failed to open ipc socket: %s\n", strerror(errno));
-		*ipcfd=0;
 		return -1;
 	}
 
@@ -74,7 +75,7 @@ int cb_ipcsocket_init(int *ipcfd, char *node, char *suffix, char *server_node)
 		sizeof(sockaddress)) < 0) {
 		UB_LOG(UBL_ERROR,"Error, bind to %s: %s\n", sockaddress.sun_path, strerror(errno));
 		CB_SOCK_CLOSE(*ipcfd);
-		*ipcfd=0;
+		*ipcfd=CB_SOCKET_INVALID_VALUE;
 		return -1;
 	}
 	chmod(sockaddress.sun_path, 0777);
@@ -87,7 +88,7 @@ int cb_ipcsocket_init(int *ipcfd, char *node, char *suffix, char *server_node)
 	if(connect(*ipcfd, (const struct sockaddr *)&serveraddress, len)<0){
 		UB_LOG(UBL_ERROR,"Error, connect to %s : %s\n", server_node, strerror(errno));
 		CB_SOCK_CLOSE(*ipcfd);
-		*ipcfd=0;
+		*ipcfd=CB_SOCKET_INVALID_VALUE;
 		return -1;
 	}
 	return 0;
@@ -99,9 +100,9 @@ int cb_ipcsocket_udp_init(int *ipcfd, char *own_ip, char *server_ip, int server_
 	int len;
 
 	UB_LOG(UBL_INFO, "%s:combase-"XL4PKGVERSION"\n", __func__);
-	if((*ipcfd=CB_SOCKET(AF_INET, SOCK_DGRAM, IPPROTO_UDP))<0){
+	*ipcfd=CB_SOCKET(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	if(!CB_SOCKET_VALID(*ipcfd)){
 		UB_LOG(UBL_ERROR,"failed to open ipc socket: %s\n", strerror(errno));
-		*ipcfd=0;
 		return -1;
 	}
 	memset(&sockaddress, 0, sizeof(sockaddress));
@@ -121,7 +122,7 @@ int cb_ipcsocket_udp_init(int *ipcfd, char *own_ip, char *server_ip, int server_
 		       sizeof(sockaddress)) < 0) {
 		UB_LOG(UBL_ERROR,"Error, bind:%s\n", strerror(errno));
 		CB_SOCK_CLOSE(*ipcfd);
-		*ipcfd=0;
+		*ipcfd=CB_SOCKET_INVALID_VALUE;
 		return -1;
 	}
 	if(!server_ip) return 0;
@@ -133,7 +134,7 @@ int cb_ipcsocket_udp_init(int *ipcfd, char *own_ip, char *server_ip, int server_
 		UB_LOG(UBL_ERROR,"Error, connect to %s:%d, %s\n",
 		       server_ip, server_port, strerror(errno));
 		CB_SOCK_CLOSE(*ipcfd);
-		*ipcfd=0;
+		*ipcfd=CB_SOCKET_INVALID_VALUE;
 		return -1;
 	}
 	return 0;
@@ -143,9 +144,10 @@ int cb_ipcsocket_close(int ipcfd, char *node, char *suffix)
 {
 	char nodename[128];
 	int res=0;
-	if(ipcfd) {
+	if(CB_SOCKET_VALID(ipcfd)) {
 		if(CB_SOCK_CLOSE(ipcfd)){
-			UB_LOG(UBL_ERROR, "%s:can't close ipcfd, %s\n",__func__, strerror(errno));
+			UB_LOG(UBL_ERROR, "%s:can't close ipcfd, %s\n",__func__,
+			       strerror(errno));
 			res=-1;
 		}
 	}

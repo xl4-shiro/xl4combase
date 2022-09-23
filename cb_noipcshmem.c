@@ -19,7 +19,7 @@
  * <https://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.
  */
 #include "combase_private.h"
-#include <fcntl.h>           /* For O_* constants */
+#include <fcntl.h>		   /* For O_* constants */
 #include <string.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -36,7 +36,7 @@ static shared_mem_table_t *find_shared_mem(const char *shmname)
 {
 	int i;
 	shared_mem_table_t *memt;
-        if(!shmname) return NULL;
+	if(!shmname) return NULL;
 	if(!shmem_table) return NULL;
 	for(i=0;i<ub_esarray_ele_nums(shmem_table);i++){
 		memt=(shared_mem_table_t *)ub_esarray_get_ele(shmem_table, i);
@@ -61,22 +61,22 @@ void *cb_get_shared_mem(int *memfd, const char *shmname, size_t size, int flag)
 	if(flag & O_CREAT){
 		if(memt){
 			UB_LOG(UBL_ERROR,"%s:shared memory, name=%s is already opened\n", __func__,
-			       shmname);
+				   shmname);
 			return NULL;
 		}
 		memt=(shared_mem_table_t *)ub_esarray_get_newele(shmem_table);
-		strncpy(memt->name, shmname, 32);
+		strncpy(memt->name, shmname, 31);
 		memt->mem=malloc(size);
 		if(!memt->mem) {
 			UB_LOG(UBL_ERROR,"%s:malloc error for size=%zu, %s\n",__func__,
-			       size, strerror(errno));
+				   size, strerror(errno));
 			cb_close_shared_mem(NULL, 0, shmname, 0, true);
 			return NULL;
 		}
 	}else{
 		if(!memt){
 			UB_LOG(UBL_ERROR,"%s:shared memory, name=%s doesn't exist\n", __func__,
-			       shmname);
+				   shmname);
 			return NULL;
 		}
 	}
@@ -95,7 +95,7 @@ int cb_close_shared_mem(void *mem, int *memfd, const char *shmname, size_t size,
 
 	memt=find_shared_mem(shmname);
 	if(!memt){
-                UB_LOG(UBL_ERROR,"%s:shared memory, name=%s doesn't exist\n",__func__, shmname);
+		UB_LOG(UBL_ERROR,"%s:shared memory, name=%s doesn't exist\n",__func__, shmname);
 		return -1;
 	}
 	if(mem && unlink){
@@ -105,15 +105,15 @@ int cb_close_shared_mem(void *mem, int *memfd, const char *shmname, size_t size,
 		}
 		free(mem);
 	}
-        if(unlink){
-                ub_esarray_del_pointer(shmem_table, (ub_esarray_element_t *)memt);
+	if(unlink){
+		ub_esarray_del_pointer(shmem_table, (ub_esarray_element_t *)memt);
 		if(!ub_esarray_ele_nums(shmem_table)){
 			ub_esarray_close(shmem_table);
 			shmem_table=NULL;
 		}
-        }
-        if(memfd){
-                *memfd=0;
-        }
+	}
+	if(memfd){
+		*memfd=0;
+	}
 	return 0;
 }
