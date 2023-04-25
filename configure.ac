@@ -5,7 +5,7 @@ AC_PREREQ([2.65])
 AC_INIT([xl4combase], [1.1.3], [shiro@excelfore.com])
 AC_SUBST(PACKAGE_DESC,"Excelfore communication base library")
 
-AM_INIT_AUTOMAKE([-Wall -Werror subdir-objects])
+AM_INIT_AUTOMAKE([-Wall -Werror subdir-objects foreign])
 AM_PROG_AR
 LT_PREREQ([2.2])
 LT_INIT([static])
